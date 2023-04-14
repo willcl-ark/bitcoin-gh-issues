@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <title>GitHub Issue Details</title>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1>Issue Details</h1>
+      <dl class="row">
+        <dt class="col-sm-2">Issue Number</dt>
+        <dd class="col-sm-10">{{ issue[0] }}</dd>
+
+        <dt class="col-sm-2">Title</dt>
+        <dd class="col-sm-10">{{ issue[1] }}</dd>
+
+        <dt class="col-sm-2">Description</dt>
+        <dd class="col-sm-10">{{ issue[2] }}</dd>
+
+        <dt class="col-sm-2">URL</dt>
+        <dd class="col-sm-10">
+          <a href="{{ issue[3] }}" target="_blank">{{ issue[3] }}</a>
+        </dd>
+      </dl>
+      <form action="{{ url_for('save', issue_id=issue[0]) }}" method="post">
+        <div class="mb-3">
+          <label for="notes" class="form-label">Notes</label>
+          <textarea name="notes" id="notes" class="form-control" rows="5">
+{{ issue[4] }}</textarea
+          >
+        </div>
+        <div class="mb-3">
+          <label for="attention_of" class="form-label">Attention of</label>
+          <input
+            type="text"
+            name="attention_of"
+            id="attention_of"
+            value="{{ issue[5] }}"
+            class="form-control"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="kill_factor" class="form-label">Kill Factor (1-10)</label>
+          <input
+            type="number"
+            name="kill_factor"
+            id="kill_factor"
+            value="{{ issue[6] }}"
+            min="1"
+            max="10"
+            class="form-control"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </form>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary mt-2"
+        >Back to List</a
+      >
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+  </body>
+</html>
