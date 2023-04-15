@@ -6,7 +6,8 @@ import shutil
 import time
 from datetime import datetime, timedelta
 
-APP_PATH = '/home/ubuntu/bitcoin-issues'
+APP_PATH = '/Users/will/src//bitcoin-github'
+# APP_PATH = '/home/ubuntu/bitcoin-github'
 DB_NAME = os.path.join(APP_PATH, 'issues.db')
 BACKUP_DIR = os.path.join(APP_PATH, 'db_backups')
 
@@ -16,7 +17,8 @@ def create_backup():
         os.makedirs(BACKUP_DIR)
 
     timestamp = time.strftime('%Y%m%d_%H%M%S')
-    backup_filename = f'{DB_NAME}_backup_{timestamp}.db'
+    db_filename = os.path.basename(DB_NAME)
+    backup_filename = f'{db_filename}_backup_{timestamp}.db'
     backup_path = os.path.join(BACKUP_DIR, backup_filename)
 
     shutil.copy2(DB_NAME, backup_path)
@@ -45,16 +47,16 @@ def backup_files_by_age(backup_files):
         if backups_by_age['most_recent'][1] is None or backup_datetime > backups_by_age['most_recent'][1]:
             backups_by_age['most_recent'] = (backup_file, backup_datetime)
 
-        if age < timedelta(hours=1) and (backups_by_age['last_hour'][1] is None or backup_datetime > backups_by_age['last_hour'][1]):
+        if age < timedelta(hours=1) and (backups_by_age['last_hour'][1] is None or backup_datetime < backups_by_age['last_hour'][1]):
             backups_by_age['last_hour'] = (backup_file, backup_datetime)
 
-        if age < timedelta(days=1) and (backups_by_age['last_day'][1] is None or backup_datetime > backups_by_age['last_day'][1]):
+        if age < timedelta(days=1) and (backups_by_age['last_day'][1] is None or backup_datetime < backups_by_age['last_day'][1]):
             backups_by_age['last_day'] = (backup_file, backup_datetime)
 
-        if age < timedelta(weeks=1) and (backups_by_age['last_week'][1] is None or backup_datetime > backups_by_age['last_week'][1]):
+        if age < timedelta(weeks=1) and (backups_by_age['last_week'][1] is None or backup_datetime < backups_by_age['last_week'][1]):
             backups_by_age['last_week'] = (backup_file, backup_datetime)
 
-        if age < timedelta(days=30) and (backups_by_age['last_month'][1] is None or backup_datetime > backups_by_age['last_month'][1]):
+        if age < timedelta(days=30) and (backups_by_age['last_month'][1] is None or backup_datetime < backups_by_age['last_month'][1]):
             backups_by_age['last_month'] = (backup_file, backup_datetime)
 
     return backups_by_age
