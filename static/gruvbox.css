@@ -165,37 +165,72 @@ a:hover {
   color: var(--aqua);
 }
 
-.table {
-  border-color: var(--orange);
+/* Update Button Styles */
+
+table#issues-table.dataTable tbody tr a.btn.btn-custom-update {
+  background-color: var(--green-dim) !important;
+  color: var(--bg) !important;
+  border-color: var(--green) !important;
 }
 
-.table tbody tr {
-  color: var(--fg);
+table#issues-table.dataTable tbody tr a.btn.btn-custom-update:hover {
+  background-color: var(--blue) !important;
+  color: var(--bg) !important;
+  border-color: var(--blue) !important;
 }
 
-.table thead th {
+/* DataTables Overrides */
+
+table.dataTable thead th,
+table.dataTable thead td {
+  border-color: 1px solid var(--orange);
   color: var(--red);
 }
 
-.table tbody tr.highlighted-row {
+table.dataTable.no-footer {
+  border-bottom: 1px solid var(--bg2);
+}
+
+table#issues-table.dataTable tbody tr {
   color: var(--fg);
-  background-color: var(--bg2);
+}
+
+table#issues-table.dataTable tbody tr.highlighted-row {
+  color: var(--fg);
+  background-color: var(--bg2) !important;
+}
+
+table#issues-table.dataTable tbody tr:not(.highlighted-row) {
+  background-color: var(--bg) !important;
+}
+
+table#issues-table.dataTable tbody tr:not(.highlighted-row):hover {
+  background-color: var(--bg3) !important;
+  color: var(--fg);
+}
+
+table#issues-table.dataTable tbody tr td {
+  border-color: var(--orange);
 }
 
 .table tbody tr a {
   color: var(--blue);
 }
 
-.btn-update {
-  background-color: var(--green-dim);
-  color: var(--bg) !important;
-  border-color: var(--green);
+table#issues-table.dataTable tbody tr a {
+  color: var(--blue) !important; /* Change the hyperlink text color */
 }
 
-.btn-update:hover {
-  background-color: var(--purple);
-  color: var(--fg1);
+table#issues-table.dataTable tbody tr a:hover {
+  color: var(--aqua) !important; /* Change the hyperlink text color on hover */
 }
 
+.dataTables_wrapper .dataTables_filter {
+  color: var(--fg) !important; /* Change the text color next to the search box */
+}
 
-
+.dataTables_wrapper .dataTables_filter input {
+  background-color: var(--fg) !important; /* Change the search box background color */
+  color: var(--bg1) !important; /* Change the search box text color */
+  border-color: var(--orange); !important /* Change the search box border color */
+}
