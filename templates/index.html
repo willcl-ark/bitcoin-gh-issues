@@ -17,36 +17,13 @@
     <div class="container mt-4">
       <h1>Bitcoin Core Open Issues</h1>
 
-      <form action="{{ url_for('index') }}" method="get" class="mb-3">
-        <div class="input-group">
-          <input
-            type="text"
-            name="label"
-            class="form-control"
-            placeholder="Filter by label"
-            value="{{ label_filter }}"
-          />
-          <button type="submit" class="btn btn-primary">Filter</button>
-        </div>
-      </form>
-
-      <table class="table">
+      <table class="table" id="issues-table">
         <thead>
           <tr>
-            <th>
-              <a
-                href="{{ url_for('index', sort='number', order=order, label=label_filter) }}"
-                >Number</a
-              >
-            </th>
+            <th>Number</th>
             <th>Title</th>
             <th>Labels</th>
-            <th>
-              <a
-                href="{{ url_for('index', sort='kill_factor', order=order, label=label_filter) }}"
-                >Kill Factor</a
-              >
-            </th>
+            <th>Kill Factor</th>
             <th>Update</th>
           </tr>
         </thead>

@@ -11,14 +11,10 @@ def connect_db(db_name='issues.db'):
     return conn
 
 
-def get_issues(conn, label_filter=None, sort='number', order='asc'):
+def get_issues(conn):
     cursor = conn.cursor()
-    if label_filter:
-        query = f'''SELECT * FROM issues WHERE labels LIKE ? AND state='open' ORDER BY {sort} {order}'''
-        cursor.execute(query, (f'%{label_filter}%', ))
-    else:
-        query = f'''SELECT * FROM issues WHERE state='open' ORDER BY {sort} {order}'''
-        cursor.execute(query)
+    query = f'''SELECT * FROM issues WHERE state='open' '''
+    cursor.execute(query)
     issues = cursor.fetchall()
     for i, issue in enumerate(issues):
         issues[i] = list(issue)
@@ -40,18 +36,10 @@ def update_issue(conn, issue_id, notes, attention_of, kill_factor):
 
 @app.route('/')
 def index():
-    label_filter = request.args.get('label', '').strip()
-    sort = request.args.get('sort', 'number')
-    order = request.args.get('order', 'asc')
-    if order == 'asc':
-        next_order = 'desc'
-    else:
-        next_order = 'asc'
-
     conn = connect_db()
-    issues = get_issues(conn, label_filter, sort, order)
+    issues = get_issues(conn)
     conn.close()
-    return render_template('index.html', issues=issues, label_filter=label_filter, order=next_order)
+    return render_template('index.html', issues=issues, order='asc')
 
 
 @app.route('/issue/<int:issue_id>')
