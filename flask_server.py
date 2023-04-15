@@ -11,10 +11,19 @@ def connect_db(db_name='issues.db'):
     return conn
 
 
-def get_issues(conn):
+def get_issues(conn, label_filter=None):
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM issues')
-    return cursor.fetchall()
+    if label_filter:
+        query = '''SELECT * FROM issues WHERE labels LIKE ? ORDER BY number ASC'''
+        cursor.execute(query, (f'%{label_filter}%', ))
+    else:
+        query = '''SELECT * FROM issues ORDER BY number ASC'''
+        cursor.execute(query)
+    issues = cursor.fetchall()
+    for i, issue in enumerate(issues):
+        issues[i] = list(issue)
+        issues[i][5] = issue[5].split(',')
+    return issues
 
 
 def get_issue(conn, issue_id):
@@ -25,18 +34,17 @@ def get_issue(conn, issue_id):
 
 def update_issue(conn, issue_id, notes, attention_of, kill_factor):
     cursor = conn.cursor()
-    cursor.execute(
-        'UPDATE issues SET notes=?, attention_of=?, kill_factor=? WHERE id=?',
-        (notes, attention_of, kill_factor, issue_id))
+    cursor.execute('UPDATE issues SET notes=?, attention_of=?, kill_factor=? WHERE id=?', (notes, attention_of, kill_factor, issue_id))
     conn.commit()
 
 
 @app.route('/')
 def index():
+    label_filter = request.args.get('label', '').strip()
     conn = connect_db()
-    issues = get_issues(conn)
+    issues = get_issues(conn, label_filter)
     conn.close()
-    return render_template('index.html', issues=issues)
+    return render_template('index.html', issues=issues, label_filter=label_filter)
 
 
 @app.route('/issue/<int:issue_id>')

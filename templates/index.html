@@ -1,31 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='gruvbox.css') }}"
+      rel="stylesheet"
+    />
     <title>GitHub Issues</title>
   </head>
   <body>
     <div class="container mt-4">
-      <h1>GitHub Issues</h1>
+      <h1>Bitcoin Core Open Issues</h1>
+
+      <form action="{{ url_for('index') }}" method="get" class="mb-3">
+        <div class="input-group">
+          <input
+            type="text"
+            name="label"
+            class="form-control"
+            placeholder="Filter by label"
+            value="{{ label_filter }}"
+          />
+          <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+      </form>
+
       <table class="table">
         <thead>
           <tr>
-            <th>Issue Number</th>
-            <th>Issue Title</th>
-            <th>Issue Link</th>
+            <th>Number</th>
+            <th>Title</th>
+            <th>Labels</th>
             <th>Update</th>
           </tr>
         </thead>
         <tbody>
           {% for issue in issues %}
-            <tr class="{{ 'table-light' if issue[6] is not none }}">
-              <td>{{ issue[0] }}</td>
-              <td>{{ issue[1] }}</td>
-              <td><a href="{{ issue[3] }}" target="_blank">{{ issue[3] }}</a></td>
-              <td><a href="{{ url_for('issue', issue_id=issue[0]) }}" class="btn btn-primary">Update</a></td>
-            </tr>
+          <tr class="{{ 'highlighted-row' if issue[8] }}">
+            <td><a href="{{ issue[4] }}" target="_blank">{{ issue[1] }}</a></td>
+            <td>{{ issue[2] }}</td>
+            <td>
+              {% for label in issue[5] %} {{ label }}{% if not loop.last %}, {%
+              endif %} {% endfor %}
+            </td>
+            <td>
+              <a
+                href="{{ url_for('issue', issue_id=issue[0]) }}"
+                class="btn btn-update"
+                >Update</a
+              >
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

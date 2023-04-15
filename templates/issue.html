@@ -7,31 +7,35 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="{{ url_for('static', filename='gruvbox.css') }}"
+      rel="stylesheet"
+    />
     <title>GitHub Issue Details</title>
   </head>
   <body>
     <div class="container mt-4">
       <h1>Issue Details</h1>
       <dl class="row">
-        <dt class="col-sm-2">Issue Number</dt>
-        <dd class="col-sm-10">{{ issue[0] }}</dd>
-
-        <dt class="col-sm-2">Title</dt>
+        <dt class="col-sm-2">Number</dt>
         <dd class="col-sm-10">{{ issue[1] }}</dd>
 
-        <dt class="col-sm-2">Description</dt>
+        <dt class="col-sm-2">Title</dt>
         <dd class="col-sm-10">{{ issue[2] }}</dd>
+
+        <dt class="col-sm-2">Description</dt>
+        <dd class="col-sm-10">{{ issue[3] }}</dd>
 
         <dt class="col-sm-2">URL</dt>
         <dd class="col-sm-10">
-          <a href="{{ issue[3] }}" target="_blank">{{ issue[3] }}</a>
+          <a href="{{ issue[4] }}" target="_blank">{{ issue[4] }}</a>
         </dd>
       </dl>
       <form action="{{ url_for('save', issue_id=issue[0]) }}" method="post">
         <div class="mb-3">
           <label for="notes" class="form-label">Notes</label>
           <textarea name="notes" id="notes" class="form-control" rows="5">
-{{ issue[4] }}</textarea
+{{ issue[6]|default('', true) }}</textarea
           >
         </div>
         <div class="mb-3">
@@ -40,7 +44,7 @@
             type="text"
             name="attention_of"
             id="attention_of"
-            value="{{ issue[5] }}"
+            value="{{ issue[7]|default('', true) }}"
             class="form-control"
           />
         </div>
@@ -50,7 +54,7 @@
             type="number"
             name="kill_factor"
             id="kill_factor"
-            value="{{ issue[6] }}"
+            value="{{ issue[8]|default('', true) }}"
             min="1"
             max="10"
             class="form-control"
