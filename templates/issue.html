@@ -24,7 +24,7 @@
         <dd class="col-sm-10">{{ issue[2] }}</dd>
 
         <dt class="col-sm-2">Description</dt>
-        <dd class="col-sm-10">{{ issue[5] }}</dd>
+        <dd class="col-sm-10" id="description">{{ issue[5] }}</dd>
 
         <dt class="col-sm-2">URL</dt>
         <dd class="col-sm-10">
@@ -68,5 +68,13 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.0/markdown-it.min.js"></script>
+    <script>
+      const md = window.markdownit();
+      const descriptionElement = document.getElementById("description");
+      const markdownText = descriptionElement.textContent;
+      const htmlText = md.render(markdownText);
+      descriptionElement.innerHTML = htmlText;
+    </script>
   </body>
 </html>
