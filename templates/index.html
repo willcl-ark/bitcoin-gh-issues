@@ -33,21 +33,33 @@
       <table class="table">
         <thead>
           <tr>
-            <th>Number</th>
+            <th>
+              <a
+                href="{{ url_for('index', sort='number', order=order, label=label_filter) }}"
+                >Number</a
+              >
+            </th>
             <th>Title</th>
             <th>Labels</th>
+            <th>
+              <a
+                href="{{ url_for('index', sort='kill_factor', order=order, label=label_filter) }}"
+                >Kill Factor</a
+              >
+            </th>
             <th>Update</th>
           </tr>
         </thead>
         <tbody>
           {% for issue in issues %}
-          <tr class="{{ 'highlighted-row' if issue[8] }}">
-            <td><a href="{{ issue[4] }}" target="_blank">{{ issue[1] }}</a></td>
+          <tr class="{{ 'highlighted-row' if issue[14] }}">
+            <td><a href="{{ issue[6] }}" target="_blank">{{ issue[1] }}</a></td>
             <td>{{ issue[2] }}</td>
             <td>
-              {% for label in issue[5] %} {{ label }}{% if not loop.last %}, {%
+              {% for label in issue[7] %} {{ label }}{% if not loop.last %}, {%
               endif %} {% endfor %}
             </td>
+            <td>{{ issue[14] }}</td>
             <td>
               <a
                 href="{{ url_for('issue', issue_id=issue[0]) }}"

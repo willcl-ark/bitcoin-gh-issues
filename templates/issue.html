@@ -24,18 +24,18 @@
         <dd class="col-sm-10">{{ issue[2] }}</dd>
 
         <dt class="col-sm-2">Description</dt>
-        <dd class="col-sm-10">{{ issue[3] }}</dd>
+        <dd class="col-sm-10">{{ issue[5] }}</dd>
 
         <dt class="col-sm-2">URL</dt>
         <dd class="col-sm-10">
-          <a href="{{ issue[4] }}" target="_blank">{{ issue[4] }}</a>
+          <a href="{{ issue[6] }}" target="_blank">{{ issue[1] }}</a>
         </dd>
       </dl>
       <form action="{{ url_for('save', issue_id=issue[0]) }}" method="post">
         <div class="mb-3">
           <label for="notes" class="form-label">Notes</label>
           <textarea name="notes" id="notes" class="form-control" rows="5">
-{{ issue[6]|default('', true) }}</textarea
+{{ issue[12]|default('', true) }}</textarea
           >
         </div>
         <div class="mb-3">
@@ -44,7 +44,7 @@
             type="text"
             name="attention_of"
             id="attention_of"
-            value="{{ issue[7]|default('', true) }}"
+            value="{{ issue[13]|default('', true) }}"
             class="form-control"
           />
         </div>
@@ -54,7 +54,7 @@
             type="number"
             name="kill_factor"
             id="kill_factor"
-            value="{{ issue[8]|default('', true) }}"
+            value="{{ issue[14]|default('', true) }}"
             min="1"
             max="10"
             class="form-control"
