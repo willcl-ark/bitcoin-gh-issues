@@ -37,6 +37,7 @@
             <th>Title</th>
             <th>Labels</th>
             <th>Kill Factor</th>
+            <th>Closed By</th>
             <th>Update</th>
           </tr>
         </thead>
@@ -50,6 +51,7 @@
               endif %} {% endfor %}
             </td>
             <td>{{ issue[14] }}</td>
+            <td>{% if issue[15] is not none %}{{ issue[15] }}{% endif %}</td>
             <td>
               <a
                 href="{{ url_for('issue', issue_id=issue[0]) }}"

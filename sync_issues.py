@@ -4,6 +4,7 @@ import requests
 import sqlite3
 import os
 import json
+from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 
@@ -16,6 +17,66 @@ HEADERS = {
     'Authorization': f'token {GITHUB_TOKEN}',
     'Accept': 'application/vnd.github+json',
 }
+
+
+def run_graphql_query(query):
+    url = "https://api.github.com/graphql"
+    headers = {
+        "Authorization": f"bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    data = {"query": query}
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response.raise_for_status()
+    return response.json()
+
+
+def fetch_closing_prs(repo_owner, repo_name):
+    closing_prs = {}
+    end_cursor = None
+    has_next_page = True
+
+    query_template = """
+    {{
+        repository(owner: "{owner}", name: "{name}") {{
+            pullRequests(first: 100{after_cursor}, states: [OPEN]) {{
+                pageInfo {{
+                    endCursor
+                    hasNextPage
+                }}
+                nodes {{
+                    number
+                    bodyText
+                    closingIssuesReferences(first: 100) {{
+                        nodes {{
+                            number
+                        }}
+                    }}
+                }}
+            }}
+        }}
+    }}
+    """
+
+    while has_next_page:
+        print("Fetching graphql page")
+        after_cursor = f', after: "{end_cursor}"' if end_cursor else ""
+        query = query_template.format(owner=repo_owner, name=repo_name, after_cursor=after_cursor)
+        response = run_graphql_query(query)
+
+        prs = response["data"]["repository"]["pullRequests"]["nodes"]
+        for pr in prs:
+            for issue in pr["closingIssuesReferences"]["nodes"]:
+                closing_prs[issue["number"]] = pr["number"]
+
+        page_info = response["data"]["repository"]["pullRequests"]["pageInfo"]
+        end_cursor = page_info["endCursor"]
+        has_next_page = page_info["hasNextPage"]
+        import pprint
+        pprint.pprint(f"Added data:\n{closing_prs}")
+        print(len(closing_prs))
+
+    return closing_prs
 
 
 def create_sync_status_table(conn):
@@ -36,9 +97,6 @@ def update_last_sync_time(conn, last_sync_time):
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO sync_status (id, last_sync) VALUES (1, ?)', (last_sync_time, ))
     conn.commit()
-
-
-from datetime import datetime
 
 
 def fetch_issues(url, last_sync_time):
@@ -80,7 +138,7 @@ def connect_db(db_name='issues.db'):
 def create_issues_table(conn):
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS issues
-                      (id INTEGER PRIMARY KEY, number INTEGER, title TEXT, user TEXT, state TEXT, body TEXT, url TEXT, labels TEXT, created_at TEXT, updated_at TEXT, closed_at TEXT, closed_by TEXT, notes TEXT, attention_of TEXT, kill_factor INTEGER)'''
+                      (id INTEGER PRIMARY KEY, number INTEGER, title TEXT, user TEXT, state TEXT, body TEXT, url TEXT, labels TEXT, created_at TEXT, updated_at TEXT, closed_at TEXT, closed_by TEXT, notes TEXT, attention_of TEXT, kill_factor INTEGER, closing_pr_number INTEGER)'''
                    )
     conn.commit()
 
@@ -99,13 +157,13 @@ def insert_issue(conn, issue):
 
     if existing_issue:
         cursor.execute(
-            '''UPDATE issues SET number = ?, title = ?, user = ?, state = ?, body = ?, url = ?, labels = ?, created_at = ?, updated_at = ?, closed_at = ?, closed_by = ? WHERE id = ?''',
+            '''UPDATE issues SET number = ?, title = ?, user = ?, state = ?, body = ?, url = ?, labels = ?, created_at = ?, updated_at = ?, closed_at = ?, closed_by = ?, closing_pr_number = ? WHERE id = ?''',
             (issue['number'], issue['title'], user, issue['state'], issue['body'], issue['html_url'], labels, created_at, updated_at, closed_at, closed_by,
              issue['id']))
     else:
         cursor.execute(
-            '''INSERT INTO issues (id, number, title, user, state, body, url, labels, created_at, updated_at, closed_at, closed_by, notes, attention_of, kill_factor)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL)''',
+            '''INSERT INTO issues (id, number, title, user, state, body, url, labels, created_at, updated_at, closed_at, closed_by, notes, attention_of, kill_factor, closing_pr_number)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)''',
             (issue['id'], issue['number'], issue['title'], user, issue['state'], issue['body'], issue['html_url'], labels, created_at, updated_at, closed_at,
              closed_by))
 
@@ -118,13 +176,39 @@ def sync_issues_to_db(issues, conn):
         insert_issue(conn, issue)
 
 
+def add_closing_pr_number_column(conn):
+    cursor = conn.cursor()
+
+    cursor.execute("PRAGMA table_info(issues)")
+    columns = cursor.fetchall()
+    column_names = [column[1] for column in columns]
+
+    if "closing_pr_number" not in column_names:
+        cursor.execute("ALTER TABLE issues ADD COLUMN closing_pr_number INTEGER")
+        conn.commit()
+
+
+def update_closing_pr_numbers(conn, closing_prs):
+    cursor = conn.cursor()
+
+    for issue_number, pr_number in closing_prs.items():
+        cursor.execute("UPDATE issues SET closing_pr_number = ? WHERE number = ?", (pr_number, issue_number))
+
+    conn.commit()
+
+
 def main():
     conn = connect_db()
     create_sync_status_table(conn)
 
+    add_closing_pr_number_column(conn)
+
     last_sync_time = get_last_sync_time(conn)
     issues = fetch_issues(API_URL, last_sync_time)
     sync_issues_to_db(issues, conn)
+
+    closing_prs = fetch_closing_prs("bitcoin", "bitcoin")
+    update_closing_pr_numbers(conn, closing_prs)
 
     now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     update_last_sync_time(conn, now)
