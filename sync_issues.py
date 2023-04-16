@@ -59,7 +59,6 @@ def fetch_closing_prs(repo_owner, repo_name):
     """
 
     while has_next_page:
-        print("Fetching graphql page")
         after_cursor = f', after: "{end_cursor}"' if end_cursor else ""
         query = query_template.format(owner=repo_owner, name=repo_name, after_cursor=after_cursor)
         response = run_graphql_query(query)
@@ -72,9 +71,6 @@ def fetch_closing_prs(repo_owner, repo_name):
         page_info = response["data"]["repository"]["pullRequests"]["pageInfo"]
         end_cursor = page_info["endCursor"]
         has_next_page = page_info["hasNextPage"]
-        import pprint
-        pprint.pprint(f"Added data:\n{closing_prs}")
-        print(len(closing_prs))
 
     return closing_prs
 
@@ -157,13 +153,13 @@ def insert_issue(conn, issue):
 
     if existing_issue:
         cursor.execute(
-            '''UPDATE issues SET number = ?, title = ?, user = ?, state = ?, body = ?, url = ?, labels = ?, created_at = ?, updated_at = ?, closed_at = ?, closed_by = ?, closing_pr_number = ? WHERE id = ?''',
+            '''UPDATE issues SET number = ?, title = ?, user = ?, state = ?, body = ?, url = ?, labels = ?, created_at = ?, updated_at = ?, closed_at = ?, closed_by = ? WHERE id = ?''',
             (issue['number'], issue['title'], user, issue['state'], issue['body'], issue['html_url'], labels, created_at, updated_at, closed_at, closed_by,
              issue['id']))
     else:
         cursor.execute(
             '''INSERT INTO issues (id, number, title, user, state, body, url, labels, created_at, updated_at, closed_at, closed_by, notes, attention_of, kill_factor, closing_pr_number)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)''',
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)''',
             (issue['id'], issue['number'], issue['title'], user, issue['state'], issue['body'], issue['html_url'], labels, created_at, updated_at, closed_at,
              closed_by))
 
