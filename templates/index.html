@@ -51,7 +51,7 @@
               endif %} {% endfor %}
             </td>
             <td>{{ issue[14] }}</td>
-            <td>{% if issue[15] is not none %}{{ issue[15] }}{% endif %}</td>
+            <td>{% if issue[15] is not none %}<a href="https://github.com/bitcoin/bitcoin/pull/{{ issue[15] }}">{{ issue[15] }}</a>{% endif %}</td>
             <td>
               <a
                 href="{{ url_for('issue', issue_id=issue[0]) }}"
