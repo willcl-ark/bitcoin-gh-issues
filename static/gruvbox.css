@@ -234,3 +234,13 @@ table#issues-table.dataTable tbody tr a:hover {
   color: var(--bg1) !important; /* Change the search box text color */
   border-color: var(--orange); !important /* Change the search box border color */
 }
+
+.form-control {
+  background-color: var(--fg2);
+  color: var(--bg);
+}
+.form-control:focus {
+  background-color: var(--fg2);
+  outline: none;
+  color: var(--bg);
+}
