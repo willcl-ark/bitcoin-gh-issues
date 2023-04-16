@@ -31,7 +31,11 @@
           <a href="{{ issue[6] }}" target="_blank">{{ issue[1] }}</a>
         </dd>
       </dl>
-      <form action="{{ url_for('save', issue_id=issue[0]) }}" method="post">
+      <form
+        action="{{ url_for('save', issue_id=issue[0]) }}"
+        method="post"
+        data-issue-id="{{ issue[0] }}"
+      >
         <div class="mb-3">
           <label for="notes" class="form-label">Notes</label>
           <textarea name="notes" id="notes" class="form-control" rows="5">
@@ -75,6 +79,43 @@
       const markdownText = descriptionElement.textContent;
       const htmlText = md.render(markdownText);
       descriptionElement.innerHTML = htmlText;
+    </script>
+    <script>
+      function showMessage(message, duration) {
+        const messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messageElement.classList.add(
+          "alert",
+          "alert-success",
+          "position-fixed",
+          "bottom-0",
+          "end-0",
+          "m-3"
+        );
+        document.body.appendChild(messageElement);
+        setTimeout(() => {
+          messageElement.remove();
+        }, duration);
+      }
+
+      async function saveForm(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const issueId = event.target.getAttribute("data-issue-id");
+        const response = await fetch(`/save/${issueId}`, {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          // Replace the alert() call with showMessage()
+          showMessage("Saved successfully!", 1000);
+        } else {
+          showMessage("Failed to save.", 1000);
+        }
+      }
+
+      document.querySelector("form").addEventListener("submit", saveForm);
     </script>
   </body>
 </html>

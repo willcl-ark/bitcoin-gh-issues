@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import sqlite3
 
 app = Flask(__name__)
@@ -58,7 +58,7 @@ def save(issue_id):
     kill_factor = request.form.get('kill_factor', None)
     update_issue(conn, issue_id, notes, attention_of, kill_factor)
     conn.close()
-    return redirect(url_for('issue', issue_id=issue_id))
+    return jsonify({'status': 'success'})
 
 
 if __name__ == '__main__':
