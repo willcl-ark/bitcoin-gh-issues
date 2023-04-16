@@ -28,7 +28,10 @@
   </head>
   <body>
     <div class="container mt-4">
-      <h1>Bitcoin Core Open Issues ({{ issues|length }})</h1>
+      <h1>
+        Bitcoin Core Open Issues ({{ issues|length }}) - Closed by PRs ({{
+        issues|closed_by_count }})
+      </h1>
 
       <table class="table" id="issues-table">
         <thead>
@@ -51,7 +54,12 @@
               endif %} {% endfor %}
             </td>
             <td>{{ issue[14] }}</td>
-            <td>{% if issue[15] is not none %}<a href="https://github.com/bitcoin/bitcoin/pull/{{ issue[15] }}">{{ issue[15] }}</a>{% endif %}</td>
+            <td>
+              {% if issue[15] is not none %}<a
+                href="https://github.com/bitcoin/bitcoin/pull/{{ issue[15] }}"
+                >{{ issue[15] }}</a
+              >{% endif %}
+            </td>
             <td>
               <a
                 href="{{ url_for('issue', issue_id=issue[0]) }}"

@@ -6,6 +6,16 @@ import sqlite3
 app = Flask(__name__)
 
 
+def closed_by_count(issues):
+    count = 0
+    for issue in issues:
+        if issue[15] is not None:
+            count += 1
+    return count
+
+app.jinja_env.filters['closed_by_count'] = closed_by_count
+
+
 def connect_db(db_name='issues.db'):
     conn = sqlite3.connect(db_name)
     return conn
