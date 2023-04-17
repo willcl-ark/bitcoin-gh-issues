@@ -28,7 +28,14 @@
 
         <dt class="col-sm-2">URL</dt>
         <dd class="col-sm-10">
-          <a href="{{ issue[6] }}" target="_blank">{{ issue[1] }}</a>
+          <a href="{{ issue[6] }}" target="_blank">https://github.com/bitcoin/bitcoin/issue/{{ issue[1] }}</a>
+        </dd>
+        <dt class="col-sm-2">Closed by</dt>
+        <dd class="col-sm-10">
+          {% if issue[15] is not none %}<a
+            href="https://github.com/bitcoin/bitcoin/pull/{{ issue[15] }}"
+            >#{{ issue[15] }}</a
+          >{% endif %}
         </dd>
       </dl>
       <form
