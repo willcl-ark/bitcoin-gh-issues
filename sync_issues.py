@@ -7,9 +7,14 @@ import json
 from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
+DB_PATH = os.environ.get('BITCOIN_GITHUB_DB_PATH')
 
 if not GITHUB_TOKEN:
     print('Please set your GitHub personal access token in the GITHUB_TOKEN environment variable')
+    exit(1)
+
+if not DB_PATH:
+    print('Please set the DB path in the BITCOIN_GITHUB_DB_PATH environment variable')
     exit(1)
 
 API_URL = 'https://api.github.com/repos/bitcoin/bitcoin/issues?per_page=500'
@@ -126,8 +131,8 @@ def fetch_issues(url, last_sync_time):
     return issues
 
 
-def connect_db(db_name='issues.db'):
-    conn = sqlite3.connect(db_name)
+def connect_db():
+    conn = sqlite3.connect(DB_PATH)
     return conn
 
 
