@@ -28,10 +28,10 @@
   </head>
   <body>
     <div class="container mt-4">
-      <h1>
-        Bitcoin Core Open Issues ({{ issues|length }}) - Closed by PRs ({{
-        issues|closed_by_count }})
-      </h1>
+      <h1>Bitcoin Core Open Issues</h1>
+      <h3>
+        Open ({{ issues|length }}) Closed by PRs ({{ issues|closed_by_count }})
+      </h3>
 
       <table class="table" id="issues-table">
         <thead>
@@ -39,7 +39,10 @@
             <th>Number</th>
             <th>Title</th>
             <th>Labels</th>
-            <th>Kill Factor</th>
+            <th>
+              Kill Factor
+              (<span id="kill-factor-count" class="kill-factor-count">0</span>)
+            </th>
             <th>Closed By</th>
             <th>Update</th>
           </tr>
@@ -76,9 +79,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
     <script>
       $(document).ready(function () {
-        $("#issues-table").DataTable({
+        var table = $("#issues-table").DataTable({
           order: [],
           paging: false,
+          drawCallback: function () {
+            var api = this.api();
+            var killFactorCount = api
+              .rows({ filter: "applied" })
+              .nodes()
+              .toArray()
+              .reduce(function (count, row) {
+                var killFactorCell = row.cells[3];
+                return (
+                  count + (killFactorCell.textContent.trim() !== "" ? 1 : 0)
+                );
+              }, 0);
+            $("#kill-factor-count").text(killFactorCount);
+          },
+          initComplete: function () {
+            var api = this.api();
+            var killFactorCount = api
+              .rows()
+              .nodes()
+              .toArray()
+              .reduce(function (count, row) {
+                var killFactorCell = row.cells[3];
+                return (
+                  count + (killFactorCell.textContent.trim() !== "" ? 1 : 0)
+                );
+              }, 0);
+            $("#kill-factor-count").text(killFactorCount);
+          },
         });
       });
     </script>
