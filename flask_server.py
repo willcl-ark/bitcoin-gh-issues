@@ -13,8 +13,6 @@ app.secret_key = os.environ.get('BITCOIN_GITHUB_SK')
 # Set up Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-# You can customize the login view here
 login_manager.login_view = "login"
 
 

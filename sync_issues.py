@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import requests
 import sqlite3
 import os
@@ -8,6 +9,10 @@ from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 DB_PATH = os.environ.get('BITCOIN_GITHUB_DB_PATH')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 
 if not GITHUB_TOKEN:
     print('Please set your GitHub personal access token in the GITHUB_TOKEN environment variable')
@@ -25,6 +30,7 @@ HEADERS = {
 
 
 def run_graphql_query(query):
+    logger.info(f"Running GraphQL query")
     url = "https://api.github.com/graphql"
     headers = {
         "Authorization": f"bearer {GITHUB_TOKEN}",
@@ -37,6 +43,7 @@ def run_graphql_query(query):
 
 
 def fetch_closing_prs(repo_owner, repo_name):
+    logger.info("Fetching closing PRs")
     closing_prs = {}
     end_cursor = None
     has_next_page = True
@@ -76,6 +83,8 @@ def fetch_closing_prs(repo_owner, repo_name):
         page_info = response["data"]["repository"]["pullRequests"]["pageInfo"]
         end_cursor = page_info["endCursor"]
         has_next_page = page_info["hasNextPage"]
+ 
+    logger.info(f"Fetched {len(closing_prs)} closing PRs")
 
     return closing_prs
 
@@ -95,12 +104,14 @@ def get_last_sync_time(conn):
 
 
 def update_last_sync_time(conn, last_sync_time):
+    logger.info(f"Updating last sync time to {last_sync_time}")
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO sync_status (id, last_sync) VALUES (1, ?)', (last_sync_time, ))
     conn.commit()
 
 
 def fetch_issues(url, last_sync_time):
+    logger.info("Fetching issues")
     issues = []
     page = 1
 
@@ -127,6 +138,8 @@ def fetch_issues(url, last_sync_time):
             page += 1
 
         page = 1
+
+    logger.info(f"Fetched {len(issues)} new issues since last sync")
 
     return issues
 
@@ -157,11 +170,13 @@ def insert_issue(conn, issue):
     existing_issue = cursor.fetchone()
 
     if existing_issue:
+        logger.info(f"Updating issue {issue['number']}")
         cursor.execute(
             '''UPDATE issues SET number = ?, title = ?, user = ?, state = ?, body = ?, url = ?, labels = ?, created_at = ?, updated_at = ?, closed_at = ?, closed_by = ? WHERE id = ?''',
             (issue['number'], issue['title'], user, issue['state'], issue['body'], issue['html_url'], labels, created_at, updated_at, closed_at, closed_by,
              issue['id']))
     else:
+        logger.info(f"Inserting issue {issue['number']}")
         cursor.execute(
             '''INSERT INTO issues (id, number, title, user, state, body, url, labels, created_at, updated_at, closed_at, closed_by, notes, attention_of, kill_factor, closing_pr_number)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)''',
@@ -172,6 +187,10 @@ def insert_issue(conn, issue):
 
 
 def sync_issues_to_db(issues, conn):
+    if len(issues) == 0:
+        logger.info("Skipping syncing issues to database")
+        return
+    logger.info("Syncing issues to database")
     create_issues_table(conn)
     for issue in issues:
         insert_issue(conn, issue)
@@ -190,15 +209,19 @@ def add_closing_pr_number_column(conn):
 
 
 def update_closing_pr_numbers(conn, closing_prs):
+    logger.info("Updating closing PR numbers")
     cursor = conn.cursor()
 
     for issue_number, pr_number in closing_prs.items():
+        logger.info(f"Updating issue {issue_number} with closing PR {pr_number}")
         cursor.execute("UPDATE issues SET closing_pr_number = ? WHERE number = ?", (pr_number, issue_number))
 
     conn.commit()
 
 
 def main():
+    logger.info("Starting issue sync")
+
     conn = connect_db()
     create_sync_status_table(conn)
 
@@ -215,6 +238,8 @@ def main():
     update_last_sync_time(conn, now)
 
     conn.close()
+
+    logger.info("Finished issue sync")
 
 
 if __name__ == '__main__':
