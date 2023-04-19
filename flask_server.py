@@ -6,9 +6,11 @@ import sqlite3
 import bcrypt
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_login import LoginManager, UserMixin, login_user, current_user
+from flask_limiter import Limiter
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('BITCOIN_GITHUB_SK')
+limiter = Limiter(key_func=lambda: request.remote_addr if request else None, app=app)
 
 # Set up Flask-Login
 login_manager = LoginManager()
@@ -44,6 +46,7 @@ def check_password(hashed_password, password):
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
