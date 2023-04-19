@@ -28,7 +28,9 @@
 
         <dt class="col-sm-2">URL</dt>
         <dd class="col-sm-10">
-          <a href="{{ issue[6] }}" target="_blank">https://github.com/bitcoin/bitcoin/issue/{{ issue[1] }}</a>
+          <a href="{{ issue[6] }}" target="_blank"
+            >https://github.com/bitcoin/bitcoin/issue/{{ issue[1] }}</a
+          >
         </dd>
         <dt class="col-sm-2">Closed by</dt>
         <dd class="col-sm-10">
@@ -113,6 +115,14 @@
           method: "POST",
           body: formData,
         });
+
+        if (response.status === 401) {
+          // Redirect to the login page
+          window.location.href =
+            "/login?next=" + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
         const result = await response.json();
         if (result.status === "success") {
           // Replace the alert() call with showMessage()

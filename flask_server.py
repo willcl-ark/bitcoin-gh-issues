@@ -1,9 +1,66 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+import os
 import sqlite3
 
+import bcrypt
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
+from flask_login import LoginManager, UserMixin, login_user, current_user
+
 app = Flask(__name__)
+app.secret_key = os.environ.get('BITCOIN_GITHUB_SK')
+
+# Set up Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# You can customize the login view here
+login_manager.login_view = "login"
+
+
+# User class
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+
+# User loader
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+
+# Helper function to get the user from the database
+def get_user(username):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username=?', (username, ))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
+# Helper function to validate the password
+def check_password(hashed_password, password):
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Validate the user from the database
+        user = get_user(username)
+
+        if user and check_password(user[2], password):
+            login_user(User(user[0]))
+            return redirect(url_for('index'))
+        else:
+            return abort(401)
+    else:
+        return render_template('login.html')
 
 
 def closed_by_count(issues):
@@ -12,6 +69,7 @@ def closed_by_count(issues):
         if issue[15] is not None:
             count += 1
     return count
+
 
 app.jinja_env.filters['closed_by_count'] = closed_by_count
 
@@ -62,6 +120,8 @@ def issue(issue_id):
 
 @app.route('/save/<int:issue_id>', methods=['POST'])
 def save(issue_id):
+    if not current_user.is_authenticated:
+        return jsonify({'status': 'unauthorized'}), 401
     conn = connect_db()
     notes = request.form.get('notes', '').strip()
     attention_of = request.form.get('attention_of', '').strip()
