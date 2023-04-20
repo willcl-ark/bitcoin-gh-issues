@@ -4,7 +4,7 @@ import os
 import sqlite3
 
 import bcrypt
-from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, session
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user
 from flask_limiter import Limiter
 
@@ -55,6 +55,13 @@ def is_valid_password(password):
     if not any(char.isupper() for char in password):
         return False
     return True
+
+
+def save_issue_data(conn, issue_id, form_data):
+    notes = form_data.get("notes", "").strip()
+    attention_of = form_data.get("attention_of", "").strip()
+    kill_factor = form_data.get("kill_factor", None)
+    update_issue(conn, issue_id, notes, attention_of, kill_factor)
 
 
 def closed_by_count(issues):
@@ -154,7 +161,18 @@ def login():
 
         if user and check_password(user[2], password):
             login_user(User(user[0]))
-            return redirect(url_for('index'))
+
+            # Check for unsaved form data in the session
+            unsaved_form_data = session.pop("unsaved_form_data", None)
+            if unsaved_form_data:
+                # If there's unsaved form data, save it now
+                issue_id = int(unsaved_form_data["issue_id"])
+                conn = connect_db()
+                save_issue_data(conn, issue_id, unsaved_form_data)
+                conn.close()
+
+            next_url = request.args.get("next")
+            return redirect(next_url or url_for("index"))
         else:
             return abort(401)
     else:
@@ -178,6 +196,13 @@ def issue(issue_id):
 @app.route('/save/<int:issue_id>', methods=['POST'])
 def save(issue_id):
     if not current_user.is_authenticated:
+        # Store the form data in the session
+        session["unsaved_form_data"] = {
+            "issue_id": issue_id,
+            "notes": request.form.get('notes', '').strip(),
+            "attention_of": request.form.get('attention_of', '').strip(),
+            "kill_factor": request.form.get('kill_factor', None),
+        }
         return jsonify({'status': 'unauthorized'}), 401
     conn = connect_db()
     notes = request.form.get('notes', '').strip()
