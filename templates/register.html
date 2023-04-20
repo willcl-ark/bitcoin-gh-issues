@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Register</title>
+    <script>
+      function is_valid_password(password) {
+        if (password.length < 8) return false;
+        if (!password.match(/[0-9]/)) return false;
+        if (!password.match(/[a-z]/)) return false;
+        if (!password.match(/[A-Z]/)) return false;
+        return true;
+      }
+
+      function validate_form(event) {
+        const password = document.getElementById("password").value;
+
+        if (!is_valid_password(password)) {
+          event.preventDefault();
+          alert("Password must be at least 8 characters long and contain at least one digit, one lowercase letter, and one uppercase letter.");
+          return false;
+        }
+
+        return true;
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Register</h1>
+    <form action="{{ url_for('register') }}" method="POST" onsubmit="return validate_form(event);">
+      <input type="hidden" name="token" value="{{ token }}">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      <br>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+      <br>
+      <input type="submit" value="Register">
+    </form>
+  </body>
+</html>
