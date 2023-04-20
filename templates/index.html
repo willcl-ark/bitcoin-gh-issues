@@ -28,7 +28,16 @@
   </head>
   <body>
     <div class="container mt-4">
-      <h1>Bitcoin Core Open Issues</h1>
+      <div class="header-container">
+        <h1>Bitcoin Core Open Issues</h1>
+        {% if current_user.is_authenticated %}
+        <a
+          href="{{ url_for('logout') }}"
+          class="btn btn-sm btn-outline-primary logout-link custom-logout"
+          >Logout</a
+        >
+        {% endif %}
+      </div>
       <h3>
         Open ({{ issues|length }}) Closed by PRs ({{ issues|closed_by_count }})
       </h3>
@@ -40,8 +49,11 @@
             <th>Title</th>
             <th>Labels</th>
             <th>
-              Kill Factor
-              (<span id="kill-factor-count" class="kill-factor-count">0</span>)
+              Kill Factor (<span
+                id="kill-factor-count"
+                class="kill-factor-count"
+                >0</span
+              >)
             </th>
             <th>Closed By</th>
             <th>Update</th>

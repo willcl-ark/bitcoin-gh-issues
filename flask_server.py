@@ -5,7 +5,7 @@ import sqlite3
 
 import bcrypt
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
-from flask_login import LoginManager, UserMixin, login_user, current_user
+from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user
 from flask_limiter import Limiter
 
 app = Flask(__name__)
@@ -55,6 +55,54 @@ def is_valid_password(password):
     if not any(char.isupper() for char in password):
         return False
     return True
+
+
+def closed_by_count(issues):
+    count = 0
+    for issue in issues:
+        if issue[15] is not None:
+            count += 1
+    return count
+
+
+app.jinja_env.filters['closed_by_count'] = closed_by_count
+
+
+def connect_db(db_name='issues.db'):
+    conn = sqlite3.connect(db_name)
+    return conn
+
+
+def get_issues(conn):
+    cursor = conn.cursor()
+    query = f'''SELECT * FROM issues WHERE state='open' '''
+    cursor.execute(query)
+    issues = cursor.fetchall()
+    for i, issue in enumerate(issues):
+        issues[i] = list(issue)
+        issues[i][7] = issue[7].split(',')
+    return issues
+
+
+def get_issue(conn, issue_id):
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM issues WHERE id=?', (issue_id, ))
+    return cursor.fetchone()
+
+
+def update_issue(conn, issue_id, notes, attention_of, kill_factor):
+    cursor = conn.cursor()
+    cursor.execute('UPDATE issues SET notes=?, attention_of=?, kill_factor=? WHERE id=?', (notes, attention_of, kill_factor, issue_id))
+    conn.commit()
+
+
+@app.route('/')
+def index():
+    conn = connect_db()
+    issues = get_issues(conn)
+    conn.close()
+    return render_template('index.html', issues=issues, order='asc')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -113,51 +161,10 @@ def login():
         return render_template('login.html')
 
 
-def closed_by_count(issues):
-    count = 0
-    for issue in issues:
-        if issue[15] is not None:
-            count += 1
-    return count
-
-
-app.jinja_env.filters['closed_by_count'] = closed_by_count
-
-
-def connect_db(db_name='issues.db'):
-    conn = sqlite3.connect(db_name)
-    return conn
-
-
-def get_issues(conn):
-    cursor = conn.cursor()
-    query = f'''SELECT * FROM issues WHERE state='open' '''
-    cursor.execute(query)
-    issues = cursor.fetchall()
-    for i, issue in enumerate(issues):
-        issues[i] = list(issue)
-        issues[i][7] = issue[7].split(',')
-    return issues
-
-
-def get_issue(conn, issue_id):
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM issues WHERE id=?', (issue_id, ))
-    return cursor.fetchone()
-
-
-def update_issue(conn, issue_id, notes, attention_of, kill_factor):
-    cursor = conn.cursor()
-    cursor.execute('UPDATE issues SET notes=?, attention_of=?, kill_factor=? WHERE id=?', (notes, attention_of, kill_factor, issue_id))
-    conn.commit()
-
-
-@app.route('/')
-def index():
-    conn = connect_db()
-    issues = get_issues(conn)
-    conn.close()
-    return render_template('index.html', issues=issues, order='asc')
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 
 @app.route('/issue/<int:issue_id>')

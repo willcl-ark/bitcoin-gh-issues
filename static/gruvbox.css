@@ -244,3 +244,23 @@ table#issues-table.dataTable tbody tr a:hover {
   outline: none;
   color: var(--bg);
 }
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-link {
+  text-decoration: none;
+  color: var(--purple) !important;
+  border-color: var(--purple) !important;
+}
+
+.logout-link:hover {
+  text-decoration: none;
+  color: var(--blue) !important;
+  background-color: var(--bg) !important;
+  border-color: var(--blue) !important;
+}
+
