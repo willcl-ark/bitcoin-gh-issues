@@ -45,6 +45,55 @@ def check_password(hashed_password, password):
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
 
 
+def is_valid_password(password):
+    if len(password) < 8:
+        return False
+    if not any(char.isdigit() for char in password):
+        return False
+    if not any(char.islower() for char in password):
+        return False
+    if not any(char.isupper() for char in password):
+        return False
+    return True
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        token = request.form.get('token')
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not token or not username or not password or not is_valid_password(password):
+            return abort(400)
+
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM user_tokens WHERE token = ? AND used = 0', (token, ))
+        token_entry = cursor.fetchone()
+
+        if not token_entry:
+            conn.close()
+            print("missing token in db")
+            return abort(400)
+
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        try:
+            cursor.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)', (username, password_hash))
+            conn.commit()
+            cursor.execute('UPDATE user_tokens SET used = 1 WHERE id = ?', (token_entry[0], ))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            conn.close()
+            print("IntegrityError")
+            return abort(400)
+
+        conn.close()
+        return redirect(url_for('login'))
+    else:
+        token = request.args.get('token')
+        return render_template('register.html', token=token)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def login():
