@@ -4,12 +4,13 @@ import os
 import sqlite3
 
 import bcrypt
+import secrets
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, session
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user
 from flask_limiter import Limiter
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('BITCOIN_GITHUB_SK')
+app.secret_key = secrets.token_hex(16)
 limiter = Limiter(key_func=lambda: request.remote_addr if request else None, app=app)
 
 # Set up Flask-Login
