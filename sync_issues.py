@@ -93,10 +93,12 @@ def create_sync_status_table(conn):
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS sync_status
                       (id INTEGER PRIMARY KEY, last_sync TEXT)''')
+    logger.info(f"Created sync status table")
     conn.commit()
 
 
 def get_last_sync_time(conn):
+    logger.info(f"Getting last sync time")
     cursor = conn.cursor()
     cursor.execute('SELECT last_sync FROM sync_status WHERE id = 1')
     result = cursor.fetchone()
@@ -120,6 +122,7 @@ def fetch_issues(url, last_sync_time):
 
     for state in ['open', 'closed']:
         while True:
+            logger.info(f"Fetching page {page} of {state} issues")
             if last_sync_time:
                 response = requests.get(f'{url}&state={state}&page={page}&since={last_sync_time.isoformat()}Z', headers=HEADERS)
             else:
@@ -191,21 +194,9 @@ def sync_issues_to_db(issues, conn):
         logger.info("Skipping syncing issues to database")
         return
     logger.info("Syncing issues to database")
-    create_issues_table(conn)
     for issue in issues:
         insert_issue(conn, issue)
 
-
-def add_closing_pr_number_column(conn):
-    cursor = conn.cursor()
-
-    cursor.execute("PRAGMA table_info(issues)")
-    columns = cursor.fetchall()
-    column_names = [column[1] for column in columns]
-
-    if "closing_pr_number" not in column_names:
-        cursor.execute("ALTER TABLE issues ADD COLUMN closing_pr_number INTEGER")
-        conn.commit()
 
 
 def update_closing_pr_numbers(conn, closing_prs):
@@ -223,9 +214,8 @@ def main():
     logger.info("Starting issue sync")
 
     conn = connect_db()
+    create_issues_table(conn)
     create_sync_status_table(conn)
-
-    add_closing_pr_number_column(conn)
 
     last_sync_time = get_last_sync_time(conn)
     issues = fetch_issues(API_URL, last_sync_time)
