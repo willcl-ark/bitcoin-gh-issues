@@ -1,0 +1,9 @@
+[tool.pyright]
+venvPath = "$HOME/.pyenv/versions/"
+venv = "btc-github"
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+pythonVersion = "3.9.13"
+pythonPlatform = "Linux"
