@@ -105,10 +105,12 @@ def update_issue(conn, issue_id, notes, attention_of, kill_factor):
 
 @app.route('/')
 def index():
+    sort_column = request.args.get('sort_column', default=0, type=int)
+    sort_order = request.args.get('sort_order', default='asc', type=str)
     conn = connect_db()
     issues = get_issues(conn)
     conn.close()
-    return render_template('index.html', issues=issues, order='asc')
+    return render_template('index.html', issues=issues, sort_column=sort_column, sort_order=sort_order)
 
 
 @app.route('/register', methods=['GET', 'POST'])
