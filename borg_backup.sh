@@ -1,10 +1,16 @@
 #!/bin/sh
 
-# Setting this, so the repo does not need to be given on the commandline:
-export BORG_REPO=/home/ubuntu/bitcoin-github/db_backups
+# Check for BORG_REPO
+if [ -z "$BORG_REPO" ]; then
+  echo "BORG_REPO environment variable not found. Please set it before proceeding."
+  exit 1
+fi
 
-# See the section "Passphrase notes" for more infos.
-export BORG_PASSPHRASE='password1234'
+# Check for BORG_PASSPHRASE
+if [ -z "$BORG_PASSPHRASE" ]; then
+  echo "BORG_PASSPHRASE environment variable not found. Please set it before proceeding."
+  exit 1
+fi
 
 # some helpers and error handling:
 info() { printf "\n%s %s\n\n" "$(date)" "$*" >&2; }
